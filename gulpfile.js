@@ -105,15 +105,13 @@ function watchFiles() {
     watch(
         [paths.app + 'images/*.*', paths.app + 'images/**/*.*'],
         { events: 'all', ignoreInitial: false },
-        series(images())
+        series(images)
     );
 }
 
 exports.views = views;
 exports.style = style;
 exports.script = script;
-exports.fonts = fonts;
 exports.images = images;
-exports.watch = watchFiles;
 exports.build = series(views, fonts, images, style, script);
 exports.default = parallel(browserSync, watchFiles);
