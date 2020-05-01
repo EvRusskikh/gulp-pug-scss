@@ -17,19 +17,29 @@ const path = require('path'),
 const paths = {
     app: './src/',
     dist: './dist/',
-    pug: '/src/views/',
+    pug: './src/views/',
     sass: './src/styles/',
     css: './dist/styles/'
 };
 
+function browserSync() {
+    browsersync({
+        server: {
+            baseDir: 'dist'
+        },
+        notify: false
+    });
+}
+
 function views() {
-    return src([paths.pug + '*.pug', paths.pug + 'pages/*.pug'])
+    return src([paths.pug +'*.pug', paths.pug + 'pages/*.pug'])
         .pipe(plumber())
         .pipe(pug({
             pretty: true
         }))
         .pipe(plumber.stop())
         .pipe(dest(paths.dist))
+        .on('end', browsersync.reload)
 }
 
 function style() {
@@ -57,6 +67,7 @@ function style() {
         .pipe(csso())
         .pipe(sourcemaps.write('.'))
         .pipe(dest(paths.css))
+        .on('end', browsersync.reload)
     );
 }
 
@@ -65,6 +76,7 @@ function script() {
         .pipe(concat('main.js'))
         .pipe(uglify())
         .pipe(dest(path.dist + 'js/'))
+        .on('end', browsersync.reload)
 }
 
 function fonts() {
@@ -75,15 +87,6 @@ function fonts() {
 function images() {
     return src([paths.app + 'images/*.*', paths.app + 'images/**/*.*'])
         .pipe(dest(paths.dist + 'images/'));
-}
-
-function browserSync() {
-    browsersync({
-        server: {
-            baseDir: 'dist'
-        },
-        notify: false
-    });
 }
 
 function watchFiles() {
@@ -109,9 +112,5 @@ function watchFiles() {
     );
 }
 
-exports.views = views;
-exports.style = style;
-exports.script = script;
-exports.images = images;
 exports.build = series(views, fonts, images, style, script);
-exports.default = parallel(browserSync, watchFiles);
+exports.default = parallel(fonts, browserSync, watchFiles);
